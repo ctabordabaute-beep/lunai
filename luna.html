@@ -1,0 +1,3298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Luna AI by aqirax</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Canvas de fondo - SIN BLUR */
+        #ps3Wave {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            filter: saturate(1.2) contrast(1.1);
+        }
+
+        .app {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+            /* SIN backdrop-filter: blur(4px); - ELIMINADO */
+        }
+
+        /* HEADER */
+        .header {
+            padding: 1.2rem 2rem 0.8rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(160, 100, 180, 0.10);
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: #c084c9;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .menu-btn:hover {
+            background: rgba(160, 100, 180, 0.15);
+            transform: scale(1.05);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .brand i {
+            font-size: 2rem;
+            color: #c084c9;
+            filter: drop-shadow(0 0 20px rgba(180, 90, 170, 0.5));
+        }
+
+        .brand h1 {
+            font-weight: 600;
+            font-size: 1.7rem;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #d4b0e0, #c892d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(180, 90, 170, 0.2);
+        }
+
+        .brand span {
+            font-weight: 300;
+            font-size: 0.8rem;
+            color: #6a5a72;
+            margin-left: 4px;
+            opacity: 0.7;
+        }
+
+        .header-actions-circle {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            background: rgba(160, 100, 180, 0.08);
+            border-radius: 50px;
+            padding: 4px 6px;
+            border: 1px solid rgba(160, 100, 180, 0.10);
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .header-action-btn {
+            background: transparent;
+            border: none;
+            color: #8a7a92;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: 0.2s;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .header-action-btn:hover {
+            color: #ddd0e6;
+            background: rgba(160, 100, 180, 0.2);
+        }
+
+        .header-action-btn:active {
+            transform: scale(0.92);
+        }
+
+        .header-action-btn .tooltip {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0a;
+            color: #b5a8c0;
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            border: 1px solid rgba(160, 100, 180, 0.1);
+        }
+
+        .header-action-btn:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* MENÚ LATERAL */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -340px;
+            width: 320px;
+            height: 100vh;
+            background: #0a0a0a;
+            border-right: 1px solid rgba(160, 100, 180, 0.15);
+            z-index: 1000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1.2rem;
+            box-shadow: 4px 0 40px rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .side-menu .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(160, 100, 180, 0.1);
+        }
+
+        .side-menu .menu-header .menu-title {
+            color: #ddd0e6;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .side-menu .menu-header .menu-title i {
+            color: #c084c9;
+        }
+
+        .side-menu .close-menu {
+            background: transparent;
+            border: none;
+            color: #6a5a72;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+            transition: 0.2s;
+        }
+
+        .side-menu .close-menu:hover {
+            color: #ddd0e6;
+            transform: rotate(90deg);
+        }
+
+        .side-menu .menu-item {
+            padding: 12px 16px;
+            color: #b5a8c0;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-radius: 12px;
+            transition: 0.15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            margin-bottom: 4px;
+        }
+
+        .side-menu .menu-item:hover {
+            background: rgba(160, 100, 180, 0.15);
+            color: #f0e0f5;
+        }
+
+        .side-menu .menu-item i {
+            width: 24px;
+            color: #c084c9;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .side-menu .menu-item .badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+            background: rgba(160, 100, 180, 0.2);
+            padding: 2px 10px;
+            border-radius: 20px;
+            color: #a87db0;
+        }
+
+        .side-menu .menu-divider {
+            height: 1px;
+            background: rgba(160, 100, 180, 0.08);
+            margin: 8px 12px;
+        }
+
+        .side-menu .auth-status-bar {
+            color: #6a5a72;
+            font-size: 0.75rem;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .side-menu .auth-status-bar .user-name {
+            color: #b5a8c0;
+            font-weight: 500;
+        }
+
+        .side-menu .auth-status-bar .logout-btn {
+            background: transparent;
+            border: none;
+            color: #6a5a72;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .side-menu .auth-status-bar .logout-btn:hover {
+            color: #d47e7e;
+            background: rgba(180, 60, 60, 0.1);
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+            padding-right: 4px;
+        }
+
+        .chat-history::-webkit-scrollbar {
+            width: 3px;
+        }
+        .chat-history::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-history::-webkit-scrollbar-thumb {
+            background: #4a3a55;
+            border-radius: 10px;
+        }
+
+        .history-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.15s;
+            color: #b5a8c0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            margin-bottom: 2px;
+        }
+
+        .history-item:hover {
+            background: rgba(160, 100, 180, 0.1);
+            color: #ddd0e6;
+        }
+
+        .history-item .history-preview {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item .history-time {
+            font-size: 0.6rem;
+            color: #5a4a62;
+            flex-shrink: 0;
+        }
+
+        .history-item .history-delete {
+            color: #5a4a62;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: 0.15s;
+        }
+
+        .history-item .history-delete:hover {
+            color: #d47e7e;
+            background: rgba(180, 60, 60, 0.15);
+        }
+
+        .history-empty {
+            color: #5a4a62;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #1a1329;
+            border-radius: 40px;
+            padding: 0 16px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(140, 90, 160, 0.1);
+            transition: 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: #a06aae;
+            box-shadow: 0 0 0 2px rgba(150, 80, 170, 0.15);
+        }
+
+        .search-box i {
+            color: #5a4a62;
+            font-size: 0.9rem;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 10px 12px;
+            color: #ddd0e6;
+            font-size: 0.85rem;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .search-box input::placeholder {
+            color: #4a3a52;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            display: none;
+        }
+
+        .menu-overlay.open {
+            display: block;
+        }
+
+        /* MODAL DE BIENVENIDA / LOGIN */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-modal-overlay.open {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: #0a0a0a;
+            border: 1px solid rgba(160, 100, 180, 0.25);
+            border-radius: 24px;
+            padding: 2.5rem 2.8rem;
+            max-width: 480px;
+            width: 94%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 80px rgba(160, 100, 180, 0.05);
+            position: relative;
+        }
+
+        .auth-modal::-webkit-scrollbar {
+            width: 4px;
+        }
+        .auth-modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .auth-modal::-webkit-scrollbar-thumb {
+            background: #4a3a55;
+            border-radius: 10px;
+        }
+
+        .auth-modal .auth-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: transparent;
+            border: none;
+            color: #5a4a62;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .auth-modal .auth-close:hover {
+            color: #ddd0e6;
+            transform: rotate(90deg);
+        }
+
+        .auth-modal .auth-modal-title {
+            color: #ddd0e6;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            text-align: center;
+        }
+
+        .auth-modal .auth-modal-title .highlight {
+            color: #c084c9;
+        }
+
+        .auth-modal .auth-modal-sub {
+            color: #6a5a72;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-benefits {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 1.8rem;
+            padding: 0 4px;
+        }
+
+        .auth-benefits .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #b5a8c0;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: rgba(160, 100, 180, 0.05);
+            border: 1px solid rgba(160, 100, 180, 0.05);
+            transition: 0.2s;
+        }
+
+        .auth-benefits .benefit-item i {
+            color: #c084c9;
+            font-size: 1.1rem;
+            width: 28px;
+            text-align: center;
+        }
+
+        .auth-benefits .benefit-item .benefit-text {
+            flex: 1;
+        }
+
+        .auth-benefits .benefit-item .benefit-text small {
+            color: #6a5a72;
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .auth-modal .auth-input {
+            width: 100%;
+            background: #1a1329;
+            border: 1px solid rgba(140, 90, 160, 0.12);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #ddd0e6;
+            font-size: 0.9rem;
+            font-family: inherit;
+            margin-bottom: 10px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .auth-modal .auth-input:focus {
+            border-color: #a06aae;
+            box-shadow: 0 0 0 2px rgba(150, 80, 170, 0.15);
+        }
+
+        .auth-modal .auth-input::placeholder {
+            color: #4a3a52;
+        }
+
+        .auth-modal .auth-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-modal .auth-row .auth-input {
+            flex: 1;
+        }
+
+        .auth-modal .auth-btn {
+            background: linear-gradient(135deg, #4d3560, #6a3d7a);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            color: #edd4f0;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 4px;
+            box-shadow: 0 4px 20px rgba(160, 100, 180, 0.15);
+        }
+
+        .auth-modal .auth-btn:hover {
+            background: linear-gradient(135deg, #5e4272, #7a4d8a);
+            box-shadow: 0 4px 30px rgba(160, 100, 180, 0.25);
+        }
+
+        .auth-modal .auth-btn:active {
+            transform: scale(0.97);
+        }
+
+        .auth-modal .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .auth-modal .auth-btn.secondary {
+            background: #1a1329;
+            color: #b5a8c0;
+            box-shadow: none;
+        }
+
+        .auth-modal .auth-btn.secondary:hover {
+            background: #2d1f3a;
+            color: #ddd0e6;
+        }
+
+        .auth-modal .auth-status {
+            color: #6a5a72;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 24px;
+        }
+
+        .auth-modal .auth-status.success {
+            color: #7eb8d4;
+        }
+        .auth-modal .auth-status.error {
+            color: #d47e7e;
+        }
+
+        .auth-modal .auth-timer {
+            color: #c084c9;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            margin: 6px 0 10px 0;
+        }
+
+        .auth-modal .auth-switch {
+            color: #6a5a72;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .auth-modal .auth-switch a {
+            color: #c084c9;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-modal .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-modal .auth-otp-section {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .auth-modal .auth-otp-section.active {
+            display: block;
+        }
+
+        .auth-modal .auth-forgot {
+            text-align: right;
+            margin-top: -6px;
+            margin-bottom: 8px;
+        }
+
+        .auth-modal .auth-forgot a {
+            color: #6a5a72;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .auth-modal .auth-forgot a:hover {
+            color: #c084c9;
+        }
+
+        /* CHAT */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.2rem 2rem 0.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            background: transparent;
+            scroll-behavior: smooth;
+            z-index: 1;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #7a5e82;
+            border-radius: 10px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 82%;
+            animation: fade-up 0.25s ease-out;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .message.user .message-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 40px;
+            background: rgba(42, 31, 56, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #cfa8d4;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(180, 120, 190, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .avatar.user-avatar {
+            background: rgba(75, 51, 87, 0.8);
+            color: #e3c0e8;
+        }
+
+        .bubble {
+            background: rgba(42, 31, 56, 0.7);
+            padding: 0.8rem 1.2rem;
+            border-radius: 18px 18px 18px 4px;
+            color: #ddd0e6;
+            font-weight: 400;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            border: 1px solid rgba(160, 100, 180, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            word-break: break-word;
+            min-height: 38px;
+        }
+
+        .message.user .bubble {
+            background: rgba(56, 42, 72, 0.7);
+            border-radius: 18px 18px 4px 18px;
+            border: 1px solid rgba(190, 120, 200, 0.12);
+            color: #ecdff0;
+        }
+
+        .timestamp {
+            font-size: 0.6rem;
+            opacity: 0.4;
+            margin-top: 5px;
+            color: #8a7a92;
+            text-align: right;
+            letter-spacing: 0.2px;
+        }
+
+        .message.welcome {
+            align-self: center;
+            max-width: 90%;
+            margin: 0.5rem 0 0.8rem 0;
+        }
+
+        .message.welcome .bubble {
+            background: rgba(42, 31, 56, 0.5);
+            border: 1px solid rgba(180, 120, 200, 0.15);
+            border-radius: 24px;
+            padding: 1.4rem 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .message.welcome .bubble .welcome-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            margin: 0 auto 0.8rem auto;
+            background: rgba(42, 31, 56, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(180, 120, 200, 0.2);
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(150, 80, 180, 0.15);
+        }
+
+        .message.welcome .bubble .welcome-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .message.welcome .bubble .welcome-text {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #e0cce8;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, #d4b0e0, #c892d0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .message.welcome .bubble .welcome-sub {
+            font-size: 0.85rem;
+            color: #7a6a82;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .message.welcome .bubble .timestamp {
+            text-align: center;
+            margin-top: 0.8rem;
+            opacity: 0.3;
+        }
+
+        /* BOTONES DE ACCIÓN */
+        .message-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            margin-left: 50px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            flex-wrap: wrap;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .message.user .message-actions {
+            display: none;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #8a7a92;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 50%;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+
+        .action-btn:hover {
+            color: #d4b0e0;
+            background: rgba(160, 100, 180, 0.15);
+            transform: scale(1.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn.liked {
+            color: #7eb8d4;
+        }
+
+        .action-btn.disliked {
+            color: #d47e7e;
+        }
+
+        .action-btn.speaking {
+            color: #c084c9;
+            animation: pulse-speak 0.8s ease-in-out infinite;
+        }
+
+        .action-btn.copied {
+            color: #7eb8d4;
+        }
+
+        @keyframes pulse-speak {
+            0%,
+            100% { opacity: 0.5; }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .thinking-bubble {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(42, 31, 56, 0.7);
+            padding: 0.8rem 1.4rem;
+            border-radius: 18px 18px 18px 4px;
+            border: 1px solid rgba(160, 100, 180, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            color: #c8a8d0;
+            font-size: 0.95rem;
+            min-height: 38px;
+        }
+
+        .thinking-bubble i {
+            font-size: 1.4rem;
+            color: #c084c9;
+            animation: spin-moon 1.2s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin-moon {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background-color: #c084c9;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: blink-cursor 0.8s step-end infinite;
+        }
+
+        @keyframes blink-cursor {
+            0%,
+            100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .input-area {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 1rem 2rem 1.2rem 2rem;
+            border-top: 1px solid rgba(160, 100, 180, 0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+
+        .model-selector {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .model-selector .dropdown-toggle {
+            background: rgba(37, 29, 50, 0.8);
+            border: 1px solid rgba(140, 90, 160, 0.15);
+            border-radius: 60px;
+            padding: 0.65rem 1.2rem;
+            color: #ddd0e6;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            font-family: inherit;
+            min-width: 140px;
+            justify-content: space-between;
+        }
+
+        .model-selector .dropdown-toggle:hover {
+            border-color: #a06aae;
+            background: rgba(45, 34, 61, 0.8);
+        }
+
+        .model-selector .dropdown-toggle i {
+            color: #c084c9;
+            font-size: 0.8rem;
+        }
+
+        .model-selector .dropdown-toggle .selected-name {
+            flex: 1;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .model-selector .dropdown-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            background: #0a0a0a;
+            border: 1px solid rgba(160, 100, 180, 0.15);
+            border-radius: 16px;
+            padding: 6px 0;
+            min-width: 260px;
+            box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+            display: none;
+            z-index: 100;
+        }
+
+        .model-selector .dropdown-menu.open {
+            display: block;
+        }
+
+        .model-selector .menu-item {
+            padding: 10px 16px;
+            color: #ddd0e6;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.1s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .model-selector .menu-item:hover:not(.locked) {
+            background: rgba(160, 100, 180, 0.15);
+        }
+
+        .model-selector .menu-item .model-icon {
+            width: 28px;
+            color: #c084c9;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .model-selector .menu-item .model-info {
+            flex: 1;
+        }
+
+        .model-selector .menu-item .model-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .model-selector .menu-item .model-desc {
+            font-size: 0.7rem;
+            color: #6a5a72;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .model-selector .menu-item .model-badge {
+            font-size: 0.6rem;
+            background: rgba(160, 100, 180, 0.15);
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: #a87db0;
+        }
+
+        .model-selector .menu-item .model-lock {
+            color: #5a4a62;
+            font-size: 0.85rem;
+            margin-left: 4px;
+        }
+
+        .model-selector .menu-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .model-selector .menu-item.locked:hover {
+            background: transparent;
+        }
+
+        .model-selector .menu-item.active {
+            background: rgba(160, 100, 180, 0.12);
+            border-left: 3px solid #c084c9;
+        }
+
+        .model-selector .menu-divider {
+            height: 1px;
+            background: rgba(160, 100, 180, 0.08);
+            margin: 4px 12px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: rgba(37, 29, 50, 0.6);
+            border-radius: 60px;
+            padding: 0 18px;
+            border: 1px solid rgba(140, 90, 160, 0.12);
+            transition: 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #a06aae;
+            box-shadow: 0 0 0 2px rgba(150, 80, 170, 0.2);
+            background: rgba(45, 34, 61, 0.6);
+        }
+
+        .input-wrapper i {
+            color: #8a7a92;
+            font-size: 1rem;
+            opacity: 0.6;
+            margin-right: 10px;
+        }
+
+        #chat-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0.9rem 0;
+            font-size: 0.95rem;
+            color: #e3d4ea;
+            font-family: inherit;
+        }
+
+        #chat-input::placeholder {
+            color: #5a4a62;
+            font-weight: 300;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #4d3560, #6a3d7a);
+            border: none;
+            border-radius: 60px;
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #edd4f0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 20px rgba(160, 100, 180, 0.2);
+            border: 1px solid rgba(180, 120, 200, 0.15);
+            flex-shrink: 0;
+        }
+
+        .btn-send i {
+            filter: drop-shadow(0 0 8px rgba(200, 140, 220, 0.2));
+        }
+
+        .btn-send:hover {
+            background: linear-gradient(135deg, #5e4272, #7a4d8a);
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(160, 100, 180, 0.3);
+            border-color: #a06aae;
+        }
+
+        .btn-send:active {
+            transform: scale(0.92);
+        }
+
+        .btn-mic {
+            background: rgba(45, 31, 58, 0.6);
+            border: none;
+            border-radius: 60px;
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c8a8d0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 14px rgba(40, 20, 50, 0.4);
+            border: 1px solid rgba(160, 100, 180, 0.10);
+            flex-shrink: 0;
+        }
+
+        .btn-mic:hover {
+            background: rgba(61, 42, 78, 0.6);
+            transform: scale(1.02);
+            border-color: #a06aae;
+        }
+
+        .btn-mic:active {
+            transform: scale(0.92);
+        }
+
+        .btn-mic.listening {
+            background: rgba(106, 61, 122, 0.6);
+            color: #ffd4f0;
+            border-color: #c084c9;
+            animation: pulse-mic 1s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(180, 90, 170, 0.3);
+        }
+
+        @keyframes pulse-mic {
+            0%,
+            100% { box-shadow: 0 0 20px rgba(180, 90, 170, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(180, 90, 170, 0.5); }
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.7rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(120, 70, 140, 0.08);
+            flex-shrink: 0;
+            color: #6a5a72;
+            font-size: 0.8rem;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            z-index: 2;
+        }
+
+        .footer i {
+            color: #8a7a92;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .footer strong {
+            font-weight: 500;
+            background: linear-gradient(135deg, #c69acf, #b07db8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: #0a0a0a;
+            border: 1px solid rgba(160, 100, 180, 0.2);
+            border-radius: 12px;
+            padding: 6px 0;
+            min-width: 220px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: none;
+        }
+
+        .context-menu .menu-item {
+            padding: 10px 18px;
+            color: #b5a8c0;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.1s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .context-menu .menu-item:hover {
+            background: rgba(160, 100, 180, 0.2);
+            color: #f0e0f5;
+        }
+
+        .context-menu .menu-item i {
+            width: 20px;
+            color: #c084c9;
+            font-size: 1rem;
+        }
+
+        .context-menu .menu-divider {
+            height: 1px;
+            background: rgba(160, 100, 180, 0.1);
+            margin: 4px 12px;
+        }
+
+        .highlight {
+            background: rgba(192, 132, 201, 0.25);
+            border-radius: 4px;
+            padding: 0 2px;
+        }
+
+        .highlight-current {
+            background: rgba(192, 132, 201, 0.5);
+            border-radius: 4px;
+            padding: 0 2px;
+        }
+
+        @keyframes fade-up {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 550px) {
+            .header { padding: 1rem 1.2rem 0.6rem 1.2rem; gap: 6px; }
+            .brand h1 { font-size: 1.2rem; }
+            .brand i { font-size: 1.5rem; }
+            .brand span { font-size: 0.6rem; }
+            .chat-container { padding: 1rem 1rem 0.2rem 1rem; }
+            .input-area { padding: 0.7rem 1rem 1rem 1rem; gap: 6px; flex-wrap: wrap; }
+            .btn-send,
+            .btn-mic { width: 44px;
+                height: 44px;
+                font-size: 1.2rem; }
+            .message { max-width: 96%; }
+            .message.welcome .bubble { padding: 1rem 1.2rem; }
+            .message.welcome .bubble .welcome-logo { width: 56px;
+                height: 56px; }
+            .message.welcome .bubble .welcome-text { font-size: 1.1rem; }
+            .message-actions { margin-left: 10px;
+                gap: 2px; }
+            .action-btn { font-size: 0.75rem;
+                width: 24px;
+                height: 24px;
+                padding: 2px; }
+            .model-selector .dropdown-toggle { min-width: 100px;
+                padding: 0.5rem 0.8rem;
+                font-size: 0.75rem; }
+            .model-selector .dropdown-menu { min-width: 220px;
+                right: 0;
+                left: auto;
+                bottom: calc(100% + 6px); }
+            .side-menu { width: 280px;
+                left: -290px;
+                padding: 1rem; }
+            .context-menu { min-width: 180px; }
+            .context-menu .menu-item { padding: 8px 14px;
+                font-size: 0.8rem; }
+            .header-action-btn { font-size: 0.9rem;
+                width: 28px;
+                height: 28px;
+                padding: 4px; }
+            .header-action-btn .tooltip { display: none; }
+            .menu-btn { font-size: 1.2rem;
+                width: 34px;
+                height: 34px;
+                padding: 4px; }
+            .header-actions-circle { padding: 2px 4px; }
+            .auth-modal { padding: 1.5rem 1.2rem; max-width: 95%; }
+            .auth-modal .auth-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- CANVAS DE FONDO NEON - SIN BLUR -->
+    <canvas id="ps3Wave"></canvas>
+
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <button class="menu-btn" id="menuBtn" aria-label="Abrir menú">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="brand">
+                <i class="fas fa-moon"></i>
+                <h1>Luna AI <span>· asistente</span></h1>
+            </div>
+
+            <div class="header-actions-circle">
+                <button class="header-action-btn" id="newChatHeader" title="Nuevo chat">
+                    <i class="fas fa-plus"></i>
+                    <span class="tooltip">Nuevo chat</span>
+                </button>
+                <button class="header-action-btn" id="searchChatHeader" title="Buscar en el chat">
+                    <i class="fas fa-search"></i>
+                    <span class="tooltip">Buscar</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- OVERLAY -->
+        <div class="menu-overlay" id="menuOverlay"></div>
+
+        <!-- MENÚ LATERAL -->
+        <div class="side-menu" id="sideMenu">
+            <div class="menu-header">
+                <div class="menu-title">
+                    <i class="fas fa-moon"></i> Luna AI
+                </div>
+                <button class="close-menu" id="closeMenuBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <button class="menu-item" id="menuAuthBtn">
+                <i class="fas fa-user-circle"></i> <span id="authMenuLabel">Iniciar Sesión / Registrarse</span>
+            </button>
+
+            <div class="auth-status-bar" id="authStatusBar" style="display:none;">
+                <span><i class="fas fa-user"></i> <span class="user-name" id="sideUserName">Usuario</span></span>
+                <button class="logout-btn" id="sideLogoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar</button>
+            </div>
+
+            <div class="menu-divider"></div>
+
+            <button class="menu-item" id="menuNewChatSide">
+                <i class="fas fa-plus-circle"></i> Generar nuevo chat
+            </button>
+            <button class="menu-item" id="menuHistoryToggle">
+                <i class="fas fa-clock-rotate-left"></i> Ver historial de chats
+                <span class="badge" id="historyCount">0</span>
+            </button>
+
+            <div class="menu-divider"></div>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchHistory" placeholder="Buscar conversaciones..." />
+            </div>
+
+            <div class="chat-history" id="chatHistory">
+                <div class="history-empty">Inicia sesión para guardar conversaciones</div>
+            </div>
+        </div>
+
+        <!-- MODAL DE BIENVENIDA / LOGIN -->
+        <div class="auth-modal-overlay" id="authModal">
+            <div class="auth-modal">
+                <button class="auth-close" id="authModalClose"><i class="fas fa-times"></i></button>
+
+                <div class="auth-modal-title" id="authModalTitle">
+                    🌙 <span class="highlight">Luna AI</span>
+                </div>
+                <div class="auth-modal-sub" id="authModalSub">
+                    Inicia sesión o regístrate y desbloquea:
+                </div>
+
+                <div class="auth-benefits">
+                    <div class="benefit-item">
+                        <i class="fas fa-clock-rotate-left"></i>
+                        <span class="benefit-text">
+                            1. Acceso a Historial
+                            <small>Guarda todas tus conversaciones</small>
+                        </span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-gift"></i>
+                        <span class="benefit-text">
+                            2. Acceso a Próximos Sorteos
+                            <small>Participa en sorteos exclusivos</small>
+                        </span>
+                    </div>
+                    <div class="benefit-item">
+                        <i class="fas fa-shield-halved"></i>
+                        <span class="benefit-text">
+                            3. Protección Total a tu cuenta
+                            <small>Seguridad y respaldo de tus datos</small>
+                        </span>
+                    </div>
+                </div>
+
+                <div id="authForm">
+                    <input type="email" class="auth-input" id="authEmail" placeholder="Correo electrónico" />
+                    <input type="text" class="auth-input" id="authUsername" placeholder="Usuario" />
+                    <input type="password" class="auth-input" id="authPassword" placeholder="Contraseña (mínimo 6 caracteres)" />
+                    <input type="password" class="auth-input" id="authConfirmPassword" placeholder="Confirmar contraseña" style="display:none;" />
+                    <div class="auth-forgot">
+                        <a id="authForgotLink">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <button class="auth-btn" id="authSendCodeBtn">Enviar código de verificación</button>
+                </div>
+
+                <div class="auth-otp-section" id="authOtpSection">
+                    <div class="auth-row">
+                        <input type="text" class="auth-input" id="authOtpInput" placeholder="Código de 6 dígitos" maxlength="6" />
+                        <button class="auth-btn secondary" id="authVerifyBtn" style="width:auto; padding:10px 20px;">Verificar</button>
+                    </div>
+                    <div class="auth-timer" id="authTimer">⏱ 02:00</div>
+                    <button class="auth-btn secondary" id="authResendBtn" style="margin-top:4px; font-size:0.75rem; padding:6px;">Reenviar código</button>
+                </div>
+
+                <div class="auth-status" id="authStatus"></div>
+
+                <div class="auth-switch" id="authSwitch">
+                    <span id="authSwitchText">¿No tienes cuenta?</span>
+                    <a id="authSwitchLink">Regístrate</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="chat-container" id="chatContainer">
+            <div class="message welcome" id="welcomeMessage">
+                <div class="bubble">
+                    <div class="welcome-logo">
+                        <img src="luna.png" alt="Luna AI" />
+                    </div>
+                    <div class="welcome-text">Hola, ¿en qué puedo ayudarte?</div>
+                    <div class="welcome-sub">✦ escribe o usa el micrófono ✦</div>
+                    <div class="timestamp">ahora</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT -->
+        <div class="input-area">
+            <div class="model-selector" id="modelSelector">
+                <button class="dropdown-toggle" id="dropdownToggle">
+                    <span class="selected-name" id="selectedModelName">Luna Flash</span>
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button class="menu-item active" data-model="flash" data-locked="false">
+                        <span class="model-icon"><i class="fas fa-bolt"></i></span>
+                        <span class="model-info">
+                            <span class="model-name">Luna Flash</span>
+                            <span class="model-desc">Rápido y eficiente</span>
+                        </span>
+                        <span class="model-badge">Gratis</span>
+                    </button>
+                    <div class="menu-divider"></div>
+                    <button class="menu-item locked" data-model="pro" data-locked="true">
+                        <span class="model-icon"><i class="fas fa-crown"></i></span>
+                        <span class="model-info">
+                            <span class="model-name">Luna Pro</span>
+                            <span class="model-desc">Más pensativa y profunda</span>
+                        </span>
+                        <span class="model-lock"><i class="fas fa-lock"></i></span>
+                    </button>
+                    <button class="menu-item locked" data-model="media" data-locked="true">
+                        <span class="model-icon"><i class="fas fa-video"></i></span>
+                        <span class="model-info">
+                            <span class="model-name">Generar Imágenes y Videos</span>
+                            <span class="model-desc">Usa el modelo AqiraxAI 4.0</span>
+                        </span>
+                        <span class="model-lock"><i class="fas fa-lock"></i></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-edit"></i>
+                <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." autocomplete="off" />
+            </div>
+            <button class="btn-mic" id="micBtn" aria-label="Dictar mensaje">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button class="btn-send" id="sendBtn" aria-label="Enviar">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+        <footer class="footer">
+            <i class="fas fa-crown"></i>
+            <span>Luna está desarrollada por <strong>Aqirax</strong></span>
+            <i class="fas fa-sparkles"></i>
+        </footer>
+    </div>
+
+    <!-- MENÚ CONTEXTUAL -->
+    <div class="context-menu" id="contextMenu">
+        <button class="menu-item" id="menuNewChatCtx">
+            <i class="fas fa-plus-circle"></i> Generar nuevo chat
+        </button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" id="menuUpgradeCtx">
+            <i class="fas fa-crown"></i> Mejorar a plan superior
+        </button>
+    </div>
+
+    <script>
+        // ----- FONDO NEON PS3 - SIN BLUR, COLORES MORADO/ROSADO/FUCSIA -----
+        (function() {
+            const canvas = document.getElementById('ps3Wave');
+            const ctx = canvas.getContext('2d');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Colores: morado, rosado, morado claro/fucsia
+            const waves = [{
+                length: 0.002,
+                amplitude: 85,
+                speed: 0.015,
+                color: 'rgba(160, 80, 200, 0.9)',
+                lineWidth: 5,
+                shadowBlur: 40,
+                phase: 0
+            }, {
+                length: 0.003,
+                amplitude: 65,
+                speed: 0.01,
+                color: 'rgba(220, 100, 190, 0.8)',
+                lineWidth: 4,
+                shadowBlur: 30,
+                phase: 2
+            }, {
+                length: 0.0015,
+                amplitude: 105,
+                speed: 0.007,
+                color: 'rgba(180, 60, 220, 0.85)',
+                lineWidth: 6,
+                shadowBlur: 50,
+                phase: 4
+            }];
+
+            let tick = 0;
+
+            function animate() {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                tick++;
+
+                waves.forEach(wave => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height / 2);
+
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = canvas.height / 2 +
+                            Math.sin(x * wave.length + wave.phase) * wave.amplitude * Math.cos(x * 0.0004 +
+                                wave.phase * 0.4);
+                        ctx.lineTo(x, y);
+                    }
+
+                    const flickerOpacity = Math.sin(tick * wave.speed * 5) * 0.12 + 0.88;
+                    const flickerShadow = Math.sin(tick * wave.speed * 10) * 5 + wave.shadowBlur;
+
+                    ctx.strokeStyle = wave.color.replace('0.9', flickerOpacity.toString());
+                    ctx.lineWidth = wave.lineWidth;
+                    ctx.shadowBlur = flickerShadow;
+                    ctx.shadowColor = wave.color;
+                    ctx.stroke();
+
+                    wave.phase += wave.speed;
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        })();
+
+        // ----- CONFIGURACIÓN EMAILJS -----
+        const EMAILJS_CONFIG = {
+            publicKey: 'UGO8niMwMr4h2hvaR',
+            serviceId: 'service_s1rxbjk',
+            templateId: 'template_o395xdk'
+        };
+
+        emailjs.init(EMAILJS_CONFIG.publicKey);
+
+        // ----- ESTADO DE AUTENTICACIÓN -----
+        let authState = {
+            email: '',
+            username: '',
+            password: '',
+            codigo: '',
+            codigoTimestamp: 0,
+            isLoggedIn: false,
+            userData: null,
+            timerInterval: null,
+            timeLeft: 120,
+            isRegisterMode: false,
+            isForgotMode: false
+        };
+
+        // ----- DOM ELEMENTS -----
+        const authModal = document.getElementById('authModal');
+        const authModalClose = document.getElementById('authModalClose');
+        const authModalTitle = document.getElementById('authModalTitle');
+        const authModalSub = document.getElementById('authModalSub');
+        const authForm = document.getElementById('authForm');
+        const authOtpSection = document.getElementById('authOtpSection');
+        const authEmail = document.getElementById('authEmail');
+        const authUsername = document.getElementById('authUsername');
+        const authPassword = document.getElementById('authPassword');
+        const authConfirmPassword = document.getElementById('authConfirmPassword');
+        const authOtpInput = document.getElementById('authOtpInput');
+        const authStatus = document.getElementById('authStatus');
+        const authTimer = document.getElementById('authTimer');
+        const authSendCodeBtn = document.getElementById('authSendCodeBtn');
+        const authVerifyBtn = document.getElementById('authVerifyBtn');
+        const authResendBtn = document.getElementById('authResendBtn');
+        const authSwitch = document.getElementById('authSwitch');
+        const authSwitchText = document.getElementById('authSwitchText');
+        const authSwitchLink = document.getElementById('authSwitchLink');
+        const authForgotLink = document.getElementById('authForgotLink');
+        const menuAuthBtn = document.getElementById('menuAuthBtn');
+        const authMenuLabel = document.getElementById('authMenuLabel');
+        const authStatusBar = document.getElementById('authStatusBar');
+        const sideUserName = document.getElementById('sideUserName');
+        const sideLogoutBtn = document.getElementById('sideLogoutBtn');
+
+        // ----- FUNCIONES DE AUTENTICACIÓN -----
+        function generarCodigo() {
+            return String(Math.floor(100000 + Math.random() * 900000));
+        }
+
+        async function enviarCodigo(email, codigo) {
+            try {
+                const templateParams = { to_email: email, codigo: codigo };
+                const response = await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    EMAILJS_CONFIG.templateId,
+                    templateParams
+                );
+                return { success: true, response };
+            } catch (error) {
+                console.error('Error al enviar correo:', error);
+                return { success: false, error: error.text || 'Error al enviar el código' };
+            }
+        }
+
+        function iniciarContador() {
+            authState.timeLeft = 120;
+            actualizarTimer();
+
+            if (authState.timerInterval) clearInterval(authState.timerInterval);
+
+            authState.timerInterval = setInterval(() => {
+                authState.timeLeft--;
+                actualizarTimer();
+
+                if (authState.timeLeft <= 0) {
+                    clearInterval(authState.timerInterval);
+                    authState.timerInterval = null;
+                    authTimer.textContent = '⏱ 00:00';
+                    authTimer.style.color = '#d47e7e';
+                    authStatus.textContent = '⏰ El código ha expirado. Solicita uno nuevo.';
+                    authStatus.className = 'auth-status error';
+                }
+            }, 1000);
+        }
+
+        function actualizarTimer() {
+            const mins = String(Math.floor(authState.timeLeft / 60)).padStart(2, '0');
+            const secs = String(authState.timeLeft % 60).padStart(2, '0');
+            authTimer.textContent = `⏱ ${mins}:${secs}`;
+            authTimer.style.color = authState.timeLeft > 30 ? '#c084c9' : '#d47e7e';
+        }
+
+        function validarCodigo(codigoIngresado) {
+            if (authState.timeLeft <= 0) {
+                return { valid: false, message: '⏰ El código ha expirado. Solicita uno nuevo.' };
+            }
+            if (codigoIngresado === authState.codigo) {
+                return { valid: true, message: '✅ Código verificado correctamente' };
+            }
+            return { valid: false, message: '❌ Código incorrecto. Intenta de nuevo.' };
+        }
+
+        function openAuthModal(mode) {
+            authState.isRegisterMode = (mode === 'register');
+            authState.isForgotMode = false;
+            authModal.classList.add('open');
+
+            authForm.style.display = 'block';
+            authOtpSection.classList.remove('active');
+            authOtpSection.style.display = 'none';
+            authOtpInput.value = '';
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+            authTimer.textContent = '⏱ 02:00';
+            authTimer.style.color = '#c084c9';
+            authSendCodeBtn.disabled = false;
+            authSendCodeBtn.textContent = 'Enviar código de verificación';
+            authForgotLink.style.display = 'block';
+
+            if (authState.timerInterval) {
+                clearInterval(authState.timerInterval);
+                authState.timerInterval = null;
+            }
+
+            if (authState.isRegisterMode) {
+                authModalTitle.innerHTML = '📝 <span class="highlight">Regístrate</span>';
+                authModalSub.textContent = 'Crea tu cuenta y desbloquea todos los beneficios';
+                authConfirmPassword.style.display = 'block';
+                authSwitchText.textContent = '¿Ya tienes cuenta?';
+                authSwitchLink.textContent = 'Inicia sesión';
+                authUsername.style.display = 'block';
+                authUsername.placeholder = 'Usuario';
+                authForgotLink.style.display = 'none';
+            } else {
+                authModalTitle.innerHTML = '🔐 <span class="highlight">Iniciar Sesión</span>';
+                authModalSub.textContent = 'Ingresa tus credenciales para continuar';
+                authConfirmPassword.style.display = 'none';
+                authSwitchText.textContent = '¿No tienes cuenta?';
+                authSwitchLink.textContent = 'Regístrate';
+                authUsername.style.display = 'block';
+                authUsername.placeholder = 'Usuario';
+                authForgotLink.style.display = 'block';
+            }
+
+            authEmail.value = '';
+            authUsername.value = '';
+            authPassword.value = '';
+            authConfirmPassword.value = '';
+            authOtpInput.value = '';
+
+            setTimeout(() => authEmail.focus(), 100);
+        }
+
+        function closeAuthModal() {
+            authModal.classList.remove('open');
+            if (authState.timerInterval) {
+                clearInterval(authState.timerInterval);
+                authState.timerInterval = null;
+            }
+        }
+
+        // ----- MANEJO DE ENVÍO DE CÓDIGO -----
+        async function handleSendCode() {
+            const email = authEmail.value.trim();
+            const username = authUsername.value.trim() || 'Usuario';
+            const password = authPassword.value.trim();
+            const confirmPassword = authConfirmPassword.value.trim();
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                authStatus.textContent = '❌ Ingresa un correo válido.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            if (password.length < 6) {
+                authStatus.textContent = '❌ La contraseña debe tener al menos 6 caracteres.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            if (authState.isRegisterMode && password !== confirmPassword) {
+                authStatus.textContent = '❌ Las contraseñas no coinciden.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            authState.email = email;
+            authState.username = username;
+            authState.password = password;
+
+            authState.codigo = generarCodigo();
+            authState.codigoTimestamp = Date.now();
+
+            authSendCodeBtn.disabled = true;
+            authSendCodeBtn.textContent = 'Enviando...';
+            authStatus.textContent = '📧 Enviando código...';
+            authStatus.className = 'auth-status';
+
+            const result = await enviarCodigo(email, authState.codigo);
+
+            authSendCodeBtn.disabled = false;
+            authSendCodeBtn.textContent = 'Enviar código de verificación';
+
+            if (result.success) {
+                authStatus.textContent = '✅ Código enviado a tu correo. Revisa tu bandeja de entrada.';
+                authStatus.className = 'auth-status success';
+
+                authForm.style.display = 'none';
+                authOtpSection.style.display = 'block';
+                authOtpSection.classList.add('active');
+                authOtpInput.value = '';
+                setTimeout(() => authOtpInput.focus(), 200);
+
+                iniciarContador();
+            } else {
+                authStatus.textContent = `❌ Error al enviar: ${result.error || 'Intenta de nuevo'}`;
+                authStatus.className = 'auth-status error';
+            }
+        }
+
+        // ----- MANEJO DE VERIFICACIÓN -----
+        function handleVerifyCode() {
+            const codigoIngresado = authOtpInput.value.trim();
+
+            if (!codigoIngresado || codigoIngresado.length !== 6) {
+                authStatus.textContent = '❌ Ingresa el código de 6 dígitos.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            const result = validarCodigo(codigoIngresado);
+
+            if (result.valid) {
+                if (authState.timerInterval) {
+                    clearInterval(authState.timerInterval);
+                    authState.timerInterval = null;
+                }
+
+                authState.isLoggedIn = true;
+                authState.userData = {
+                    email: authState.email,
+                    username: authState.username,
+                    password: authState.password
+                };
+
+                try {
+                    localStorage.setItem('luna_user', JSON.stringify(authState.userData));
+                } catch (e) {}
+
+                updateUIAfterLogin();
+                closeAuthModal();
+
+                authStatus.textContent = '✅ ¡Bienvenido!';
+                authStatus.className = 'auth-status success';
+
+                setTimeout(() => {
+                    addMessageWithTyping(
+                        `¡Bienvenido ${authState.username}! Soy Luna AI, tu asistente personal. 🌙`,
+                        false);
+                }, 500);
+
+            } else {
+                authStatus.textContent = result.message;
+                authStatus.className = 'auth-status error';
+            }
+        }
+
+        // ----- RECUPERACIÓN DE CONTRASEÑA -----
+        async function handleForgotPassword() {
+            const email = authEmail.value.trim();
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                authStatus.textContent = '❌ Ingresa un correo válido para recuperar tu contraseña.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            authState.isForgotMode = true;
+            authState.email = email;
+
+            authState.codigo = generarCodigo();
+            authState.codigoTimestamp = Date.now();
+
+            authSendCodeBtn.disabled = true;
+            authSendCodeBtn.textContent = 'Enviando...';
+            authStatus.textContent = '📧 Enviando código de recuperación...';
+            authStatus.className = 'auth-status';
+
+            const result = await enviarCodigo(email, authState.codigo);
+
+            authSendCodeBtn.disabled = false;
+            authSendCodeBtn.textContent = 'Enviar código de verificación';
+
+            if (result.success) {
+                authStatus.textContent =
+                '✅ Código de recuperación enviado. Revisa tu correo.';
+                authStatus.className = 'auth-status success';
+
+                authForm.style.display = 'none';
+                authOtpSection.style.display = 'block';
+                authOtpSection.classList.add('active');
+                authOtpInput.value = '';
+                setTimeout(() => authOtpInput.focus(), 200);
+
+                authModalSub.textContent = 'Ingresa el código de 6 dígitos para restablecer tu contraseña';
+                iniciarContador();
+            } else {
+                authStatus.textContent = `❌ Error al enviar: ${result.error || 'Intenta de nuevo'}`;
+                authStatus.className = 'auth-status error';
+            }
+        }
+
+        // ----- REENVÍO DE CÓDIGO -----
+        async function handleResendCode() {
+            if (!authState.email) {
+                authStatus.textContent = '❌ No hay correo registrado. Vuelve a iniciar.';
+                authStatus.className = 'auth-status error';
+                return;
+            }
+
+            authState.codigo = generarCodigo();
+            authState.codigoTimestamp = Date.now();
+
+            authResendBtn.disabled = true;
+            authResendBtn.textContent = 'Enviando...';
+            authStatus.textContent = '📧 Reenviando código...';
+            authStatus.className = 'auth-status';
+
+            const result = await enviarCodigo(authState.email, authState.codigo);
+
+            authResendBtn.disabled = false;
+            authResendBtn.textContent = 'Reenviar código';
+
+            if (result.success) {
+                authStatus.textContent = '✅ Código reenviado a tu correo.';
+                authStatus.className = 'auth-status success';
+                if (authState.timerInterval) {
+                    clearInterval(authState.timerInterval);
+                    authState.timerInterval = null;
+                }
+                iniciarContador();
+            } else {
+                authStatus.textContent = `❌ Error al reenviar: ${result.error || 'Intenta de nuevo'}`;
+                authStatus.className = 'auth-status error';
+            }
+        }
+
+        // ----- CIERRE DE SESIÓN -----
+        function handleLogout() {
+            authState.isLoggedIn = false;
+            authState.userData = null;
+            authState.email = '';
+            authState.username = '';
+            authState.password = '';
+            authState.codigo = '';
+            authState.codigoTimestamp = 0;
+
+            if (authState.timerInterval) {
+                clearInterval(authState.timerInterval);
+                authState.timerInterval = null;
+            }
+
+            try {
+                localStorage.removeItem('luna_user');
+            } catch (e) {}
+
+            updateUIAfterLogout();
+            authStatus.textContent = '👋 Sesión cerrada.';
+            authStatus.className = 'auth-status';
+            closeMenu();
+            // Limpiar historial visual
+            renderHistory();
+        }
+
+        // ----- ACTUALIZAR UI -----
+        function updateUIAfterLogin() {
+            authMenuLabel.textContent = authState.username;
+            sideUserName.textContent = authState.username;
+            authStatusBar.style.display = 'flex';
+            const menuAuthBtn = document.getElementById('menuAuthBtn');
+            menuAuthBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${authState.username}`;
+            renderHistory();
+        }
+
+        function updateUIAfterLogout() {
+            authMenuLabel.textContent = 'Iniciar Sesión / Registrarse';
+            authStatusBar.style.display = 'none';
+            const menuAuthBtn = document.getElementById('menuAuthBtn');
+            menuAuthBtn.innerHTML = `<i class="fas fa-user-circle"></i> Iniciar Sesión / Registrarse`;
+            renderHistory();
+        }
+
+        function cargarSesion() {
+            try {
+                const saved = localStorage.getItem('luna_user');
+                if (saved) {
+                    const userData = JSON.parse(saved);
+                    if (userData && userData.email) {
+                        authState.isLoggedIn = true;
+                        authState.userData = userData;
+                        authState.email = userData.email;
+                        authState.username = userData.username || 'Usuario';
+                        authState.password = userData.password || '';
+                        updateUIAfterLogin();
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        // ----- EVENTOS DE AUTENTICACIÓN -----
+        document.getElementById('menuAuthBtn').addEventListener('click', function() {
+            closeMenu();
+            openAuthModal('login');
+        });
+
+        authModalClose.addEventListener('click', closeAuthModal);
+        authModal.addEventListener('click', function(e) {
+            if (e.target === this) closeAuthModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && authModal.classList.contains('open')) {
+                closeAuthModal();
+            }
+        });
+
+        authSendCodeBtn.addEventListener('click', function() {
+            if (authState.isForgotMode) {
+                handleForgotPassword();
+            } else {
+                handleSendCode();
+            }
+        });
+
+        authVerifyBtn.addEventListener('click', function() {
+            if (authState.isForgotMode) {
+                const codigoIngresado = authOtpInput.value.trim();
+                if (!codigoIngresado || codigoIngresado.length !== 6) {
+                    authStatus.textContent = '❌ Ingresa el código de 6 dígitos.';
+                    authStatus.className = 'auth-status error';
+                    return;
+                }
+                const result = validarCodigo(codigoIngresado);
+                if (result.valid) {
+                    authStatus.textContent = '✅ Código verificado. Ahora puedes cambiar tu contraseña.';
+                    authStatus.className = 'auth-status success';
+                    authForm.style.display = 'block';
+                    authOtpSection.classList.remove('active');
+                    authOtpSection.style.display = 'none';
+                    authPassword.value = '';
+                    authPassword.placeholder = 'Nueva contraseña (mínimo 6 caracteres)';
+                    authConfirmPassword.style.display = 'block';
+                    authConfirmPassword.placeholder = 'Confirmar nueva contraseña';
+                    authSendCodeBtn.textContent = 'Actualizar contraseña';
+                    authState.isForgotMode = false;
+                    authModalSub.textContent = 'Ingresa tu nueva contraseña';
+                    authForgotLink.style.display = 'none';
+                    authSwitch.style.display = 'none';
+                    authSendCodeBtn.onclick = function() {
+                        const newPass = authPassword.value.trim();
+                        const confirmPass = authConfirmPassword.value.trim();
+                        if (newPass.length < 6) {
+                            authStatus.textContent = '❌ La contraseña debe tener al menos 6 caracteres.';
+                            authStatus.className = 'auth-status error';
+                            return;
+                        }
+                        if (newPass !== confirmPass) {
+                            authStatus.textContent = '❌ Las contraseñas no coinciden.';
+                            authStatus.className = 'auth-status error';
+                            return;
+                        }
+                        authState.password = newPass;
+                        if (authState.userData) {
+                            authState.userData.password = newPass;
+                            try {
+                                localStorage.setItem('luna_user', JSON.stringify(authState.userData));
+                            } catch (e) {}
+                        }
+                        authStatus.textContent = '✅ Contraseña actualizada correctamente.';
+                        authStatus.className = 'auth-status success';
+                        setTimeout(() => closeAuthModal(), 1500);
+                    };
+                } else {
+                    authStatus.textContent = result.message;
+                    authStatus.className = 'auth-status error';
+                }
+            } else {
+                handleVerifyCode();
+            }
+        });
+
+        authResendBtn.addEventListener('click', handleResendCode);
+        sideLogoutBtn.addEventListener('click', handleLogout);
+
+        authForgotLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            authState.isForgotMode = true;
+            authModalSub.textContent = 'Ingresa tu correo para recibir un código de recuperación';
+            authSendCodeBtn.textContent = 'Enviar código de recuperación';
+            authSwitch.style.display = 'none';
+            authForgotLink.style.display = 'none';
+            authConfirmPassword.style.display = 'none';
+            authStatus.textContent = '';
+            authStatus.className = 'auth-status';
+        });
+
+        authSwitchLink.addEventListener('click', function() {
+            if (authState.isRegisterMode) {
+                openAuthModal('login');
+            } else {
+                openAuthModal('register');
+            }
+        });
+
+        authPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (authState.isRegisterMode && authConfirmPassword.value.trim() === '') {
+                    authConfirmPassword.focus();
+                } else {
+                    authSendCodeBtn.click();
+                }
+            }
+        });
+
+        authConfirmPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                authSendCodeBtn.click();
+            }
+        });
+
+        authOtpInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                authVerifyBtn.click();
+            }
+        });
+
+        // ----- BLOQUEAR HERRAMIENTAS DE DESARROLLO -----
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) { e.preventDefault(); return false; }
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return false; }
+            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
+        });
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showContextMenu(e.clientX, e.clientY);
+        });
+
+        // ----- MENÚ CONTEXTUAL -----
+        const contextMenu = document.getElementById('contextMenu');
+
+        function showContextMenu(x, y) {
+            const menuWidth = 220;
+            const menuHeight = 100;
+            let left = x;
+            let top = y;
+            if (x + menuWidth > window.innerWidth) left = window.innerWidth - menuWidth - 10;
+            if (y + menuHeight > window.innerHeight) top = window.innerHeight - menuHeight - 10;
+            contextMenu.style.left = left + 'px';
+            contextMenu.style.top = top + 'px';
+            contextMenu.style.display = 'block';
+        }
+
+        function hideContextMenu() {
+            contextMenu.style.display = 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!contextMenu.contains(e.target)) hideContextMenu();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') hideContextMenu();
+        });
+
+        document.getElementById('menuNewChatCtx').addEventListener('click', function() {
+            hideContextMenu();
+            resetChat();
+        });
+
+        document.getElementById('menuUpgradeCtx').addEventListener('click', function() {
+            hideContextMenu();
+            alert('🚀 Funcionalidad "Mejorar a plan superior" - Contacta con soporte para más información.');
+        });
+
+        // ----- MENÚ LATERAL -----
+        const sideMenu = document.getElementById('sideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const menuBtn = document.getElementById('menuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+
+        function openMenu() {
+            sideMenu.classList.add('open');
+            menuOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            renderHistory();
+        }
+
+        function closeMenu() {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        menuBtn.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
+                closeMenu();
+            }
+        });
+
+        // ----- MINI MENÚ DE ICONOS -----
+        document.getElementById('newChatHeader').addEventListener('click', function() {
+            resetChat();
+        });
+
+        // Búsqueda en el chat actual
+        let searchActive = false;
+        let searchResults = [];
+        let currentSearchIndex = -1;
+
+        document.getElementById('searchChatHeader').addEventListener('click', function() {
+            toggleSearchMode();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                toggleSearchMode();
+            }
+            if (e.key === 'Escape' && searchActive) {
+                clearSearchHighlights();
+                searchActive = false;
+            }
+        });
+
+        function toggleSearchMode() {
+            if (!searchActive) {
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.id = 'floatingSearch';
+                searchInput.placeholder = 'Buscar en el chat...';
+                searchInput.style.cssText = `
+                            position: fixed;
+                            top: 80px;
+                            right: 40px;
+                            background: #1a1329;
+                            border: 1px solid rgba(160,100,180,0.3);
+                            border-radius: 40px;
+                            padding: 10px 20px;
+                            color: #ddd0e6;
+                            font-size: 0.95rem;
+                            font-family: inherit;
+                            z-index: 500;
+                            width: 280px;
+                            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+                            outline: none;
+                        `;
+                document.body.appendChild(searchInput);
+                searchInput.focus();
+
+                searchActive = true;
+
+                searchInput.addEventListener('input', function() {
+                    performSearch(this.value);
+                });
+
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        navigateSearch(1);
+                    }
+                    if (e.key === 'Escape') {
+                        clearSearchHighlights();
+                        searchActive = false;
+                        this.remove();
+                    }
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        navigateSearch(1);
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        navigateSearch(-1);
+                    }
+                });
+
+                setTimeout(() => {
+                    document.addEventListener('click', function closeSearch(e) {
+                        if (!e.target.closest('#floatingSearch') && !e.target.closest(
+                                '#searchChatHeader')) {
+                            const input = document.getElementById('floatingSearch');
+                            if (input) {
+                                clearSearchHighlights();
+                                searchActive = false;
+                                input.remove();
+                                document.removeEventListener('click', closeSearch);
+                            }
+                        }
+                    });
+                }, 100);
+
+            } else {
+                const input = document.getElementById('floatingSearch');
+                if (input) {
+                    clearSearchHighlights();
+                    searchActive = false;
+                    input.remove();
+                }
+            }
+        }
+
+        function performSearch(query) {
+            clearSearchHighlights();
+            if (!query.trim()) {
+                searchResults = [];
+                currentSearchIndex = -1;
+                return;
+            }
+
+            const messages = chatContainer.querySelectorAll('.message .bubble');
+            searchResults = [];
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+
+            messages.forEach((bubble, index) => {
+                const text = bubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+                if (regex.test(text)) {
+                    const regex2 = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                    const highlighted = text.replace(regex2, match =>
+                        `<span class="highlight">${match}</span>`);
+                    searchResults.push({
+                        index,
+                        bubble,
+                        original: text,
+                        highlighted
+                    });
+                }
+            });
+
+            if (searchResults.length > 0) {
+                currentSearchIndex = 0;
+                highlightResult(0);
+                showSearchCounter(searchResults.length);
+            } else {
+                currentSearchIndex = -1;
+                showSearchCounter(0);
+            }
+        }
+
+        function highlightResult(index) {
+            searchResults.forEach((r, i) => {
+                const regex = new RegExp(r.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const highlighted = r.original.replace(regex, match =>
+                    `<span class="${i === index ? 'highlight-current' : 'highlight'}">${match}</span>`);
+                r.bubble.innerHTML = highlighted;
+                const ts = r.bubble.querySelector('.timestamp');
+                if (!ts) {
+                    const timestamp = document.createElement('div');
+                    timestamp.className = 'timestamp';
+                    const now = new Date();
+                    timestamp.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now
+                        .getMinutes()).padStart(2, '0');
+                    r.bubble.appendChild(timestamp);
+                }
+            });
+
+            if (searchResults[index]) {
+                const bubble = searchResults[index].bubble;
+                bubble.closest('.message').scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+
+        function clearSearchHighlights() {
+            searchResults.forEach(r => {
+                r.bubble.innerHTML = r.original;
+                const timestamp = document.createElement('div');
+                timestamp.className = 'timestamp';
+                const now = new Date();
+                timestamp.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes())
+                    .padStart(2, '0');
+                r.bubble.appendChild(timestamp);
+            });
+            searchResults = [];
+            currentSearchIndex = -1;
+            const counter = document.getElementById('searchCounter');
+            if (counter) counter.remove();
+        }
+
+        function navigateSearch(direction) {
+            if (searchResults.length === 0) return;
+            currentSearchIndex = (currentSearchIndex + direction + searchResults.length) % searchResults.length;
+            highlightResult(currentSearchIndex);
+            updateSearchCounter();
+        }
+
+        function showSearchCounter(total) {
+            let counter = document.getElementById('searchCounter');
+            if (!counter) {
+                counter = document.createElement('div');
+                counter.id = 'searchCounter';
+                counter.style.cssText = `
+                            position: fixed;
+                            top: 80px;
+                            right: 330px;
+                            color: #6a5a72;
+                            font-size: 0.8rem;
+                            z-index: 500;
+                            background: #0a0a0a;
+                            padding: 6px 12px;
+                            border-radius: 20px;
+                            border: 1px solid rgba(160,100,180,0.1);
+                        `;
+                document.body.appendChild(counter);
+            }
+            if (total > 0) {
+                counter.textContent = `${currentSearchIndex + 1} / ${total}`;
+                counter.style.display = 'block';
+            } else {
+                counter.textContent = '0 resultados';
+            }
+        }
+
+        function updateSearchCounter() {
+            const counter = document.getElementById('searchCounter');
+            if (counter && searchResults.length > 0) {
+                counter.textContent = `${currentSearchIndex + 1} / ${searchResults.length}`;
+            }
+        }
+
+        // ----- SELECTOR DE MODELOS -----
+        const dropdownToggle = document.getElementById('dropdownToggle');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const selectedModelName = document.getElementById('selectedModelName');
+
+        dropdownToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!document.getElementById('modelSelector').contains(e.target)) {
+                dropdownMenu.classList.remove('open');
+            }
+        });
+
+        document.querySelectorAll('.menu-item[data-model]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (this.dataset.locked === 'true') {
+                    alert('🔒 Esta función está bloqueada. Mejora a un plan superior para desbloquearla.');
+                    dropdownMenu.classList.remove('open');
+                    return;
+                }
+                document.querySelectorAll('.menu-item[data-model]').forEach(el => el.classList.remove(
+                'active'));
+                this.classList.add('active');
+                const nameSpan = this.querySelector('.model-name');
+                if (nameSpan) selectedModelName.textContent = nameSpan.textContent;
+                dropdownMenu.classList.remove('open');
+                showModelChangeNotification(selectedModelName.textContent);
+            });
+        });
+
+        function showModelChangeNotification(modelName) {
+            const existing = document.querySelector('.model-notification');
+            if (existing) existing.remove();
+            const notif = document.createElement('div');
+            notif.className = 'model-notification';
+            notif.style.cssText = `
+                        position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+                        background: rgba(10,10,10,0.9); 
+                        color: #ddd0e6; padding: 10px 24px; border-radius: 40px;
+                        border: 1px solid rgba(160,100,180,0.2); font-size: 0.85rem;
+                        z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+                        transition: opacity 0.4s ease, transform 0.4s ease;
+                        opacity: 1; pointer-events: none;
+                    `;
+            notif.innerHTML =
+                `<i class="fas fa-check-circle" style="color:#c084c9;margin-right:10px;"></i> Modelo cambiado a <strong>${modelName}</strong>`;
+            document.body.appendChild(notif);
+            setTimeout(() => {
+                notif.style.opacity = '0';
+                notif.style.transform = 'translateX(-50%) translateY(10px)';
+                setTimeout(() => notif.remove(), 500);
+            }, 2000);
+        }
+
+        // ----- GESTIÓN DE HISTORIAL (localStorage) - SOLO SI ESTÁ LOGUEADO -----
+        const STORAGE_KEY = 'luna_chat_history';
+
+        function getHistory() {
+            if (!authState.isLoggedIn) return [];
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch { return []; }
+        }
+
+        function saveHistory(history) {
+            if (!authState.isLoggedIn) return;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            updateHistoryCount();
+        }
+
+        function updateHistoryCount() {
+            const history = getHistory();
+            const countEl = document.getElementById('historyCount');
+            if (countEl) countEl.textContent = history.length;
+        }
+
+        function saveCurrentChat() {
+            if (!authState.isLoggedIn) return;
+            const messages = chatContainer.querySelectorAll('.message:not(.welcome)');
+            if (messages.length === 0) return;
+
+            const chatData = [];
+            let title = '';
+            messages.forEach(msg => {
+                const bubble = msg.querySelector('.bubble');
+                if (!bubble) return;
+                const text = bubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+                if (!text) return;
+                const isUser = msg.classList.contains('user');
+                chatData.push({ text, isUser });
+                if (!title && isUser) title = text.substring(0, 50);
+            });
+
+            if (chatData.length === 0) return;
+
+            const history = getHistory();
+            const now = new Date();
+            const displayTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2,
+                '0');
+
+            history.unshift({
+                id: Date.now(),
+                title: title || 'Conversación',
+                messages: chatData,
+                time: displayTime,
+                timestamp: now.toISOString()
+            });
+
+            if (history.length > 100) history.pop();
+            saveHistory(history);
+        }
+
+        function renderHistory(filter = '') {
+            const historyContainer = document.getElementById('chatHistory');
+            const history = getHistory();
+
+            if (!authState.isLoggedIn) {
+                historyContainer.innerHTML = '<div class="history-empty">🔒 Inicia sesión para guardar conversaciones</div>';
+                const countEl = document.getElementById('historyCount');
+                if (countEl) countEl.textContent = '0';
+                return;
+            }
+
+            const filtered = filter ?
+                history.filter(h => h.title.toLowerCase().includes(filter.toLowerCase()) ||
+                    h.messages.some(m => m.text.toLowerCase().includes(filter.toLowerCase()))) :
+                history;
+
+            if (filtered.length === 0) {
+                historyContainer.innerHTML = '<div class="history-empty">' +
+                    (filter ? 'No se encontraron conversaciones' : 'No hay conversaciones guardadas') +
+                    '</div>';
+                return;
+            }
+
+            historyContainer.innerHTML = '';
+            filtered.forEach(chat => {
+                const div = document.createElement('button');
+                div.className = 'history-item';
+                div.innerHTML = `
+                            <i class="fas fa-comment" style="color:#5a4a62;font-size:0.8rem;"></i>
+                            <span class="history-preview">${chat.title}</span>
+                            <span class="history-time">${chat.time || '--:--'}</span>
+                            <button class="history-delete" data-id="${chat.id}" title="Eliminar">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        `;
+                div.addEventListener('click', function(e) {
+                    if (e.target.closest('.history-delete')) return;
+                    loadChat(chat.id);
+                    closeMenu();
+                });
+
+                const deleteBtn = div.querySelector('.history-delete');
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    deleteChat(chat.id);
+                });
+
+                historyContainer.appendChild(div);
+            });
+        }
+
+        function loadChat(chatId) {
+            if (!authState.isLoggedIn) return;
+            const history = getHistory();
+            const chat = history.find(h => h.id === chatId);
+            if (!chat) return;
+
+            const messages = chatContainer.querySelectorAll('.message:not(.welcome)');
+            messages.forEach(msg => msg.remove());
+
+            if (!welcomeMsg.parentNode) {
+                chatContainer.appendChild(welcomeMsg);
+                welcomeMsg.style.opacity = '1';
+                welcomeMsg.style.transform = 'translateY(0)';
+            }
+
+            chat.messages.forEach(msg => {
+                addMessage(msg.text, msg.isUser);
+            });
+
+            if (chat.messages.length > 0 && welcomeMsg.parentNode) {
+                welcomeMsg.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                welcomeMsg.style.opacity = '0';
+                welcomeMsg.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (welcomeMsg.parentNode) welcomeMsg.remove();
+                }, 450);
+            }
+
+            firstMessageSent = true;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function deleteChat(chatId) {
+            if (!authState.isLoggedIn) return;
+            let history = getHistory();
+            history = history.filter(h => h.id !== chatId);
+            saveHistory(history);
+            renderHistory(document.getElementById('searchHistory').value);
+        }
+
+        document.getElementById('searchHistory').addEventListener('input', function() {
+            renderHistory(this.value);
+        });
+
+        // ----- RESETEAR CHAT -----
+        function resetChat() {
+            saveCurrentChat();
+
+            const messages = chatContainer.querySelectorAll('.message:not(.welcome)');
+            messages.forEach(msg => msg.remove());
+
+            if (!welcomeMsg.parentNode) {
+                chatContainer.appendChild(welcomeMsg);
+                welcomeMsg.style.opacity = '1';
+                welcomeMsg.style.transform = 'translateY(0)';
+            }
+            firstMessageSent = false;
+            messageCounter = 0;
+            chatInput.value = '';
+            chatInput.focus();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            updateHistoryCount();
+
+            if (searchActive) {
+                const input = document.getElementById('floatingSearch');
+                if (input) {
+                    clearSearchHighlights();
+                    searchActive = false;
+                    input.remove();
+                }
+            }
+        }
+
+        // ----- VARIABLES GLOBALES -----
+        const chatContainer = document.getElementById('chatContainer');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        const welcomeMsg = document.getElementById('welcomeMessage');
+
+        let isListening = false;
+        let recognition = null;
+        let firstMessageSent = false;
+        let messageCounter = 0;
+
+        // ----- INICIALIZAR RECONOCIMIENTO DE VOZ -----
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                micBtn.style.opacity = '0.4';
+                micBtn.title = 'Micrófono no soportado';
+                micBtn.disabled = true;
+                return null;
+            }
+            const rec = new SpeechRecognition();
+            rec.lang = 'es-ES';
+            rec.continuous = false;
+            rec.interimResults = true;
+            rec.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) finalTranscript += transcript;
+                    else interimTranscript += transcript;
+                }
+                if (interimTranscript) chatInput.value = interimTranscript;
+                if (finalTranscript) {
+                    chatInput.value = finalTranscript.trim();
+                    stopListening();
+                    setTimeout(() => handleSend(), 300);
+                }
+            };
+            rec.onerror = function() {
+                stopListening();
+                if (chatInput.value.trim() === '') {
+                    chatInput.placeholder = 'Error al escuchar, intenta de nuevo';
+                    setTimeout(() => {
+                        chatInput.placeholder = 'Escribe tu mensaje...';
+                    }, 2000);
+                }
+            };
+            rec.onend = function() { stopListening(); };
+            return rec;
+        }
+
+        function startListening() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) return;
+            }
+            try {
+                recognition.start();
+                isListening = true;
+                micBtn.classList.add('listening');
+                micBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                micBtn.title = 'Detener grabación';
+                chatInput.placeholder = 'Escuchando...';
+            } catch (e) {
+                if (e.message.includes('already started')) stopListening();
+            }
+        }
+
+        function stopListening() {
+            if (recognition) {
+                try { recognition.stop(); } catch (e) {}
+            }
+            isListening = false;
+            micBtn.classList.remove('listening');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            micBtn.title = 'Dictar mensaje';
+            if (chatInput.placeholder === 'Escuchando...') {
+                chatInput.placeholder = 'Escribe tu mensaje...';
+            }
+        }
+
+        function toggleMic() {
+            if (isListening) stopListening();
+            else {
+                if (chatInput.placeholder.includes('Error')) {
+                    chatInput.placeholder = 'Escribe tu mensaje...';
+                }
+                startListening();
+            }
+        }
+
+        // ----- FUNCIONES DEL CHAT -----
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            if (!isUser) messageDiv.dataset.messageId = ++messageCounter;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${isUser ? 'user-avatar' : ''}`;
+            const icon = document.createElement('i');
+            icon.className = isUser ? 'fas fa-user' : 'fas fa-robot';
+            avatar.appendChild(icon);
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const textNode = document.createTextNode(text);
+            bubble.appendChild(textNode);
+
+            const timestamp = document.createElement('div');
+            timestamp.className = 'timestamp';
+            const now = new Date();
+            timestamp.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2,
+                '0');
+            bubble.appendChild(timestamp);
+
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            messageDiv.appendChild(wrapper);
+
+            if (!isUser) {
+                const actions = createMessageActions(messageDiv);
+                messageDiv.appendChild(actions);
+            }
+
+            if (welcomeMsg && welcomeMsg.parentNode) {
+                chatContainer.insertBefore(messageDiv, welcomeMsg);
+            } else {
+                chatContainer.appendChild(messageDiv);
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
+        }
+
+        function createMessageActions(messageElement) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'message-actions';
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'action-btn';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            copyBtn.title = 'Copiar mensaje';
+            copyBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const bubble = messageElement.querySelector('.bubble');
+                const text = bubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+                navigator.clipboard.writeText(text).then(() => {
+                    this.classList.add('copied');
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        this.classList.remove('copied');
+                        this.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                    this.classList.add('copied');
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        this.classList.remove('copied');
+                        this.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                });
+            });
+
+            const likeBtn = document.createElement('button');
+            likeBtn.className = 'action-btn';
+            likeBtn.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+            likeBtn.title = 'Respuesta útil';
+            likeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('liked');
+                if (this.classList.contains('liked')) this.classList.remove('disliked');
+            });
+
+            const dislikeBtn = document.createElement('button');
+            dislikeBtn.className = 'action-btn';
+            dislikeBtn.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+            dislikeBtn.title = 'Respuesta no útil';
+            dislikeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('disliked');
+                if (this.classList.contains('disliked')) this.classList.remove('liked');
+            });
+
+            const regenBtn = document.createElement('button');
+            regenBtn.className = 'action-btn';
+            regenBtn.innerHTML = '<i class="fas fa-rotate"></i>';
+            regenBtn.title = 'Regenerar respuesta';
+            regenBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                regenerateResponse(messageElement);
+            });
+
+            const speakBtn = document.createElement('button');
+            speakBtn.className = 'action-btn';
+            speakBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            speakBtn.title = 'Escuchar respuesta';
+            speakBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                speakMessage(messageElement, speakBtn);
+            });
+
+            actionsDiv.appendChild(copyBtn);
+            actionsDiv.appendChild(likeBtn);
+            actionsDiv.appendChild(dislikeBtn);
+            actionsDiv.appendChild(regenBtn);
+            actionsDiv.appendChild(speakBtn);
+            return actionsDiv;
+        }
+
+        async function regenerateResponse(messageElement) {
+            const bubble = messageElement.querySelector('.bubble');
+            const originalText = bubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+            if (!originalText) return;
+
+            const allMessages = chatContainer.querySelectorAll('.message');
+            let userMessage = '';
+            let foundThis = false;
+            for (let i = allMessages.length - 1; i >= 0; i--) {
+                const msg = allMessages[i];
+                if (msg === messageElement) { foundThis = true; continue; }
+                if (foundThis && msg.classList.contains('user')) {
+                    const userBubble = msg.querySelector('.bubble');
+                    if (userBubble) {
+                        userMessage = userBubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+                        break;
+                    }
+                }
+            }
+            if (!userMessage) userMessage = originalText;
+
+            const actions = messageElement.querySelector('.message-actions');
+            const regenBtn = actions.querySelector('.action-btn:nth-child(4)');
+            regenBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            regenBtn.disabled = true;
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const newReply = getLunaReply(userMessage);
+             bubble = messageElement.querySelector('.bubble');
+            const timestamp = bubble.querySelector('.timestamp');
+            bubble.innerHTML = '';
+            const textNode = document.createTextNode(newReply);
+            bubble.appendChild(textNode);
+            if (timestamp) bubble.appendChild(timestamp);
+
+            regenBtn.innerHTML = '<i class="fas fa-rotate"></i>';
+            regenBtn.disabled = false;
+
+            const likeBtn = actions.querySelector('.action-btn:nth-child(2)');
+            const dislikeBtn = actions.querySelector('.action-btn:nth-child(3)');
+            likeBtn.classList.remove('liked');
+            dislikeBtn.classList.remove('disliked');
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function speakMessage(messageElement, speakBtn) {
+            const bubble = messageElement.querySelector('.bubble');
+            const text = bubble.textContent.replace(/\d{2}:\d{2}$/, '').trim();
+            if (!text) return;
+
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                speakBtn.classList.remove('speaking');
+                speakBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.85;
+            utterance.pitch = 1.1;
+
+            const voices = window.speechSynthesis.getVoices();
+            let selectedVoice = null;
+            const femaleKeywords = ['female', 'mujer', 'zira', 'monica', 'samantha', 'victoria', 'elena', 'maría',
+                'teresa'
+            ];
+            const preferredVoices = voices.filter(voice => {
+                const name = voice.name.toLowerCase();
+                const lang = voice.lang.toLowerCase();
+                return lang.startsWith('es') && femaleKeywords.some(keyword => name.includes(keyword));
+            });
+            if (preferredVoices.length > 0) {
+                selectedVoice = preferredVoices.sort((a, b) => b.name.length - a.name.length)[0];
+            } else {
+                const spanishVoices = voices.filter(voice => voice.lang.startsWith('es'));
+                if (spanishVoices.length > 0) selectedVoice = spanishVoices[0];
+            }
+            if (selectedVoice) utterance.voice = selectedVoice;
+
+            speakBtn.classList.add('speaking');
+            speakBtn.innerHTML = '<i class="fas fa-stop"></i>';
+
+            utterance.onend = function() {
+                speakBtn.classList.remove('speaking');
+                speakBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            };
+            utterance.onerror = function() {
+                speakBtn.classList.remove('speaking');
+                speakBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function showThinking() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'thinking-message';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-robot';
+            avatar.appendChild(icon);
+
+            const bubble = document.createElement('div');
+            bubble.className = 'thinking-bubble';
+            bubble.innerHTML = '<i class="fas fa-moon"></i> Pensando...';
+
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            messageDiv.appendChild(wrapper);
+
+            if (welcomeMsg && welcomeMsg.parentNode) {
+                chatContainer.insertBefore(messageDiv, welcomeMsg);
+            } else {
+                chatContainer.appendChild(messageDiv);
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeThinking() {
+            const thinkingEl = document.getElementById('thinking-message');
+            if (thinkingEl) thinkingEl.remove();
+        }
+
+        function typeTextIntoBubble(bubbleElement, fullText, speed = 30) {
+            return new Promise((resolve) => {
+                let index = 0;
+                const timestamp = bubbleElement.querySelector('.timestamp');
+                bubbleElement.innerHTML = '';
+                const cursorSpan = document.createElement('span');
+                cursorSpan.className = 'typing-cursor';
+                bubbleElement.appendChild(cursorSpan);
+
+                function typeNextChar() {
+                    if (index < fullText.length) {
+                        const charNode = document.createTextNode(fullText.charAt(index));
+                        bubbleElement.insertBefore(charNode, cursorSpan);
+                        index++;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        setTimeout(typeNextChar, speed);
+                    } else {
+                        cursorSpan.remove();
+                        if (timestamp) bubbleElement.appendChild(timestamp);
+                        resolve();
+                    }
+                }
+                typeNextChar();
+            });
+        }
+
+        async function addMessageWithTyping(text, isUser = false) {
+            if (isUser) {
+                addMessage(text, true);
+                return;
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.dataset.messageId = ++messageCounter;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-robot';
+            avatar.appendChild(icon);
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+
+            const timestamp = document.createElement('div');
+            timestamp.className = 'timestamp';
+            const now = new Date();
+            timestamp.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2,
+                '0');
+            bubble.appendChild(timestamp);
+
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            messageDiv.appendChild(wrapper);
+
+            const actions = createMessageActions(messageDiv);
+            messageDiv.appendChild(actions);
+
+            if (welcomeMsg && welcomeMsg.parentNode) {
+                chatContainer.insertBefore(messageDiv, welcomeMsg);
+            } else {
+                chatContainer.appendChild(messageDiv);
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            await typeTextIntoBubble(bubble, text, 30);
+            return messageDiv;
+        }
+
+        // ----- RESPUESTA DE MANTENIMIENTO -----
+        function getLunaReply(userMessage) {
+            return `🌙 Luna está en mantenimiento por ahora, pero puede visitar nuestras webs y estar al tanto: \nhttps://aqirax.com / https://aqirax.net`;
+        }
+
+        async function handleSend() {
+            const raw = chatInput.value.trim();
+            if (raw === '') return;
+
+            if (isListening) stopListening();
+
+            if (!firstMessageSent && welcomeMsg && welcomeMsg.parentNode) {
+                firstMessageSent = true;
+                welcomeMsg.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                welcomeMsg.style.opacity = '0';
+                welcomeMsg.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (welcomeMsg.parentNode) welcomeMsg.remove();
+                }, 450);
+            }
+
+            addMessage(raw, true);
+            chatInput.value = '';
+
+            showThinking();
+            await new Promise(resolve => setTimeout(resolve, 4000));
+            removeThinking();
+
+            const reply = getLunaReply(raw);
+            await addMessageWithTyping(reply, false);
+        }
+
+        // ----- EVENTOS DEL MENÚ LATERAL -----
+        document.getElementById('menuNewChatSide').addEventListener('click', function() {
+            resetChat();
+            closeMenu();
+        });
+
+        document.getElementById('menuHistoryToggle').addEventListener('click', function() {
+            const historyContainer = document.getElementById('chatHistory');
+            if (historyContainer.style.display === 'none') {
+                historyContainer.style.display = 'block';
+                renderHistory(document.getElementById('searchHistory').value);
+            } else {
+                historyContainer.style.display = 'none';
+            }
+        });
+
+        // ----- EVENTOS PRINCIPALES -----
+        sendBtn.addEventListener('click', handleSend);
+        micBtn.addEventListener('click', toggleMic);
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        window.addEventListener('load', () => {
+            chatInput.focus();
+
+            const sessionRestored = cargarSesion();
+
+            recognition = initSpeechRecognition();
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+
+            updateHistoryCount();
+            document.getElementById('chatHistory').style.display = 'block';
+            renderHistory();
+
+            if (!sessionRestored) {
+                setTimeout(() => {
+                    openAuthModal('login');
+                }, 600);
+            }
+        });
+
+        chatContainer.addEventListener('click', () => {
+            chatInput.focus();
+        });
+
+        window.addEventListener('beforeunload', function() {
+            saveCurrentChat();
+        });
+
+        window.LunaAI = {
+            addMessage,
+            addMessageWithTyping,
+            showThinking,
+            removeThinking,
+            startListening,
+            stopListening,
+            regenerateResponse,
+            speakMessage,
+            resetChat,
+            saveCurrentChat,
+            getHistory,
+            renderHistory,
+            enviarCodigo,
+            validarCodigo,
+            iniciarContador,
+            openAuthModal,
+            closeAuthModal,
+            setReplyFunction: function(fn) {
+                if (typeof fn === 'function') {
+                    window.getLunaReply = fn;
+                }
+            }
+        };
+    </script>
+</body>
+</html>
